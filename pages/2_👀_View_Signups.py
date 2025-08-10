@@ -1,7 +1,21 @@
 import streamlit as st
 import datetime
+import json
+import os
+
+SETTINGS_FILE = "user_prefs.json"
+
+def load_saved_prefs():
+    if os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+saved_prefs = load_saved_prefs()
+is_admin = st.session_state.get("is_admin", False)
 
 st.set_page_config(page_title="Calendar Sign-Up", layout="wide")
+
 
 # Simulated database of signups
 if "signups" not in st.session_state:
@@ -51,37 +65,52 @@ st.title("📅 Calendar Sign-Up")
 
 name = st.text_input("Enter your name")
 
-if not name:
-    st.info("Please enter your name to view available slots.")
-else:
-    selected_days = get_next_tue_thu()
-    all_slots = generate_time_slots(selected_days)
 
-    for slot in all_slots:
-        slot_key = slot.isoformat()
-        slot_str = slot.strftime("%A %B %d, %I:%M %p")
+if "current_user" not in st.session_state:
+    st.warning("Please log in using the sidebar to sign up for slots.")
+    st.stop()
 
-        if slot_key not in st.session_state.signups:
-            st.session_state.signups[slot_key] = []
+name = st.session_state["current_user"]
 
-        signups = st.session_state.signups[slot_key]
-        already_signed_up = name in signups
-        is_full = len(signups) >= MAX_SIGNUPS_PER_SLOT
+selected_days = get_next_tue_thu()
+all_slots = generate_time_slots(selected_days)
 
-        col1, col2 = st.columns([4, 1])
-        with col1:
-            st.write(f"**{slot_str}**")
-            if signups:
-                st.caption(f"Signed up: {', '.join(signups)}")
-            else:
-                st.caption("No one signed up yet.")
+for slot in all_slots:
+    slot_key = slot.isoformat()
+    slot_str = slot.strftime("%A %B %d, %I:%M %p")
 
-        with col2:
-            if already_signed_up:
-                st.success("You're signed up")
-            elif is_full:
-                st.error("Full")
-            else:
-                if st.button("Sign Up", key=slot_key):
-                    st.session_state.signups[slot_key].append(name)
-                    st.rerun()
+    if slot_key not in st.session_state.signups:
+        st.session_state.signups[slot_key] = []
+
+    signups = st.session_state.signups[slot_key]
+    visible_signups = []
+
+    for user in signups:
+        prefs = saved_prefs.get(user, {})
+        hide_name = prefs.get("hide_name", False)
+
+        if is_admin or not hide_name:
+            visible_signups.append(user)
+        else:
+            visible_signups.append("🔒 Hidden")
+
+    already_signed_up = name in signups
+    is_full = len(signups) >= MAX_SIGNUPS_PER_SLOT
+
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.write(f"**{slot_str}**")
+        if visible_signups:
+            st.caption(f"Signed up: {', '.join(visible_signups)}")
+        else:
+            st.caption("No one signed up yet.")
+
+    with col2:
+        if already_signed_up:
+            st.success("You're signed up")
+        elif is_full:
+            st.error("Full")
+        else:
+            if st.button("Sign Up", key=slot_key):
+                st.session_state.signups[slot_key].append(name)
+                st.rerun()
