@@ -1,5 +1,9 @@
 {
   "Sam Brandsen": {
     "hide_name": true
+  },
+  "John Doe": {
+    "membership": "",
+    "hide_name": false
   }
 }

@@ -16,10 +16,36 @@ def save_prefs(prefs):
 
 saved_prefs = load_saved_prefs()
 
+if "current_user" not in st.session_state:
+    st.info("New user? Create your profile below:")
+    with st.form("new_user_form"):
+        new_user = st.text_input("Enter your desired username")
+        membership = st.text_input("Enter your membership type (optional)")
+        submit = st.form_submit_button("Create Profile")
+        if submit:
+            if not new_user.strip():
+                st.error("Please enter a valid username.")
+            elif new_user in saved_prefs:
+                st.error("That username already exists. Please pick another.")
+            else:
+                saved_prefs[new_user] = {
+                    "membership": membership,
+                    "hide_name": False
+                }
+                save_prefs(saved_prefs)
+                st.success(f"Profile created for '{new_user}'. Please log in using the sidebar.")
+    st.stop()  # Stop further execution until login
+
 st.title("⚙️ Settings")
 
 # ✅ LET NEW USERS CREATE THEIR PROFILE
-name = st.text_input("Enter your name")
+
+if "current_user" not in st.session_state:
+    st.warning("Please log in using the sidebar.")
+    st.stop()
+
+name = st.session_state["current_user"]
+
 
 if name:
     hide_name = st.checkbox("Hide my name in public signup list", value=False)

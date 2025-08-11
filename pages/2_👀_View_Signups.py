@@ -63,7 +63,12 @@ def generate_time_slots(days):
 # --------------------------
 st.title("📅 Calendar Sign-Up")
 
-name = st.text_input("Enter your name")
+
+if "current_user" not in st.session_state:
+    st.warning("Please log in using the sidebar.")
+    st.stop()
+
+name = st.session_state["current_user"]
 
 
 if "current_user" not in st.session_state:
