@@ -16,11 +16,11 @@ def save_prefs(prefs):
 
 saved_prefs = load_saved_prefs()
 
+# --- New user signup ---
 if "current_user" not in st.session_state:
     st.info("New user? Create your profile below:")
     with st.form("new_user_form"):
         new_user = st.text_input("Enter your desired username")
-        membership = st.text_input("Enter your membership type (optional)")
         submit = st.form_submit_button("Create Profile")
         if submit:
             if not new_user.strip():
@@ -29,58 +29,42 @@ if "current_user" not in st.session_state:
                 st.error("That username already exists. Please pick another.")
             else:
                 saved_prefs[new_user] = {
-                    "membership": membership,
-                    "hide_name": False
+                    "show_attendance": True,  # default to showing attendance
+                    "membership": "1 hour per week"
                 }
                 save_prefs(saved_prefs)
                 st.success(f"Profile created for '{new_user}'. Please log in using the sidebar.")
-    st.stop()  # Stop further execution until login
-
-st.title("⚙️ Settings")
-
-# ✅ LET NEW USERS CREATE THEIR PROFILE
-
-if "current_user" not in st.session_state:
-    st.warning("Please log in using the sidebar.")
     st.stop()
+
+# --- Editing settings ---
+st.title("Settings")
 
 name = st.session_state["current_user"]
+prefs = saved_prefs.get(name, {})
 
-
-if name:
-    hide_name = st.checkbox("Hide my name in public signup list", value=False)
-
-    if st.button("Save Preferences"):
-        saved_prefs[name] = {"hide_name": hide_name}
-        save_prefs(saved_prefs)
-        st.success("Preferences saved!")
-        st.session_state["current_user"] = name
-        st.rerun()
-else:
-    st.info("Please enter your name to begin.")
-# --- Basic Info ---
-
-if "current_user" in st.session_state:
-    name = st.session_state["current_user"]
-    st.info(f"Editing preferences for: {name}")
-else:
-    st.warning("Please log in using the sidebar.")
-    st.stop()
-
-display_name = st.text_input("Display Name (optional)")
-email = st.text_input("Email (optional)")
-phone = st.text_input("Phone (optional)")
-
-# --- Display Attendance Option ---
+# --- Display Attendance ---
+current_attendance = prefs.get("show_attendance", True)
 show_attendance = st.radio(
-    "Would you like to display your name and when you'll be attending Clubhouse hours?",
-    ["Yes", "No"]
+    "Display my name and attendance in the public signup list?",
+    ["Yes", "No"],
+    index=0 if current_attendance else 1
 )
 
 # --- Membership Tier ---
+membership_options = [
+    "1 hour per week",
+    "2 hours per week",
+    "3 hours per week",
+    "4 hours per week"
+]
+current_membership = prefs.get("membership", membership_options[0])
+if current_membership not in membership_options:
+    current_membership = membership_options[0]
+
 membership = st.selectbox(
     "Select your membership tier:",
-    ["1 hour per week", "2 hours per week", "3 hours per week", "4 hours per week"]
+    membership_options,
+    index=membership_options.index(current_membership)
 )
 
 tier_messages = {
@@ -89,28 +73,26 @@ tier_messages = {
     "3 hours per week": "Come to socialize, help out, or do your own thing! You can select three hours per week that you would like to drop in at the Clubhouse",
     "4 hours per week": "Come to socialize, help out, or do your own thing! You can select four hours per week that you would like to drop in at the Clubhouse"
 }
-
 st.info(tier_messages[membership])
 
 # --- Why Are You Joining? ---
-interest_reason = st.text_area("Why are you interested in joining the Clubhouse?")
+interest_reason = st.text_area("Why are you interested in joining the Clubhouse?", value=prefs.get("interest_reason", ""))
 
 # --- Interests ---
 interests = st.multiselect(
     "Interests (optional)",
-    ["Art", "Music", "Fitness", "Computers", "Games", "Social Events"]
+    ["Art", "Music", "Fitness", "Computers", "Games", "Social Events"],
+    default=prefs.get("interests", [])
 )
 
-# --- Save ---
+# --- Save Button ---
 if st.button("Save Preferences"):
-    prefs = {
-        "display_name": display_name,
-        "email": email,
-        "phone": phone,
-        "show_attendance": show_attendance,
+    saved_prefs[name] = {
+        "show_attendance": (show_attendance == "Yes"),
         "membership": membership,
         "interest_reason": interest_reason,
         "interests": interests
     }
-    save_user_settings(name, prefs)
+    save_prefs(saved_prefs)
     st.success("Preferences saved!")
+    st.rerun()

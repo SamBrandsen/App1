@@ -5,5 +5,13 @@
   "John Doe": {
     "membership": "",
     "hide_name": false
+  },
+  "Samuel Brandsen": {
+    "membership": "",
+    "hide_name": false
+  },
+  "Samuel ": {
+    "membership": "",
+    "hide_name": false
   }
 }

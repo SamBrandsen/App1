@@ -1,0 +1,22 @@
+{
+  "2025-08-12T09:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-10T23:51:14.358685",
+      "checkout_time": "2025-08-10T23:58:44.242059"
+    }
+  },
+  "2025-08-12T10:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-10T23:58:52.795106",
+      "checkout_time": "2025-08-11T00:02:31.491040"
+    }
+  },
+  "2025-08-12T11:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_in",
+      "checkin_time": "2025-08-11T00:21:34.221519"
+    }
+  }
+}
