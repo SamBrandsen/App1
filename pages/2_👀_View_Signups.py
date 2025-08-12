@@ -3,10 +3,24 @@ import datetime
 import json
 import os
 
+# Page config first
+st.set_page_config(page_title="Calendar Sign-Up", layout="wide")
+
+# Define safe_refresh
+def safe_refresh():
+    st.session_state["_refresh"] = True
+
+# Refresh check at the very top (after safe_refresh is defined)
+if st.session_state.get("_refresh"):
+    st.session_state["_refresh"] = False
+    # This run will already have the new data loaded
+
+# File paths
 SETTINGS_FILE = "user_prefs.json"
 SIGNUPS_FILE = "signups.json"
 CHECKINS_FILE = "checkins.json"
 
+# Helper functions
 def load_json(filename):
     if os.path.exists(filename):
         with open(filename, "r") as f:
@@ -17,13 +31,15 @@ def save_json(filename, data):
     with open(filename, "w") as f:
         json.dump(data, f, indent=2)
 
+# Load data
 saved_prefs = load_json(SETTINGS_FILE)
 signups = load_json(SIGNUPS_FILE)
 checkins = load_json(CHECKINS_FILE)
 
+# Admin flag
 is_admin = st.session_state.get("is_admin", False)
-st.set_page_config(page_title="Calendar Sign-Up", layout="wide")
 
+# Constants
 MAX_SIGNUPS_PER_SLOT = 3
 
 def get_next_tue_thu():
@@ -92,13 +108,13 @@ for slot in all_slots:
                         "checkin_time": datetime.datetime.now().isoformat()
                     }
                     save_json(CHECKINS_FILE, checkins)
-                    st.experimental_rerun()
+                    safe_refresh()
             elif status == "checked_in":
                 if st.button("Check Out", key=f"checkout_{slot_key}"):
                     checkins_for_slot[name]["status"] = "checked_out"
                     checkins_for_slot[name]["checkout_time"] = datetime.datetime.now().isoformat()
                     save_json(CHECKINS_FILE, checkins)
-                    st.experimental_rerun()
+                    safe_refresh()
             elif status == "checked_out":
                 st.info("Checked out")
         else:
@@ -108,7 +124,7 @@ for slot in all_slots:
                 if st.button("Sign Up", key=f"signup_{slot_key}"):
                     signups_for_slot.append(name)
                     save_json(SIGNUPS_FILE, signups)
-                    st.experimental_rerun()
+                    safe_refresh()
 
     with col3:
         # Show check-in/out summary for current user

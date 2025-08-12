@@ -22,5 +22,25 @@
       "status": "checked_in",
       "checkin_time": "2025-08-11T00:21:34.221519"
     }
+  },
+  "2025-08-14T09:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_in",
+      "checkin_time": "2025-08-11T20:53:02.800487"
+    }
+  },
+  "2025-08-14T10:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T20:58:41.915938",
+      "checkout_time": "2025-08-11T20:58:45.301218"
+    }
+  },
+  "2025-08-14T11:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T20:58:52.683460",
+      "checkout_time": "2025-08-11T20:59:06.853992"
+    }
   }
 }
