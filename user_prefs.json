@@ -3,8 +3,10 @@
     "hide_name": true
   },
   "John Doe": {
-    "membership": "",
-    "hide_name": false
+    "show_attendance": false,
+    "membership": "1 hour per week",
+    "interest_reason": "",
+    "interests": []
   },
   "Samuel Brandsen": {
     "membership": "",

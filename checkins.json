@@ -11,6 +11,10 @@
       "status": "checked_out",
       "checkin_time": "2025-08-10T23:58:52.795106",
       "checkout_time": "2025-08-11T00:02:31.491040"
+    },
+    "John Doe": {
+      "status": "checked_in",
+      "checkin_time": "2025-08-11T20:27:48.615335"
     }
   },
   "2025-08-12T11:00:00": {

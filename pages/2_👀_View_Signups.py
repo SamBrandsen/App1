@@ -112,9 +112,18 @@ for slot in all_slots:
 
     with col3:
         # Show check-in/out summary for current user
-        if name in signups_for_slot and name in checkins_for_slot:
-            info = checkins_for_slot[name]
-            ci_time = info.get("checkin_time", "N/A")
-            co_time = info.get("checkout_time", "N/A")
-            st.write(f"Check-in: {ci_time}")
-            st.write(f"Check-out: {co_time}")
+        if is_admin:
+            st.caption("Check-in/out status:")
+            for user in signups_for_slot:
+                info = checkins_for_slot.get(user, {"status": "not_checked_in"})
+                ci_time = info.get("checkin_time", "N/A")
+                co_time = info.get("checkout_time", "N/A")
+                status = info.get("status", "not_checked_in")
+                st.write(f"- {user}: {status}, In: {ci_time}, Out: {co_time}")
+        else:
+            if name in checkins_for_slot:
+                info = checkins_for_slot[name]
+                ci_time = info.get("checkin_time", "N/A")
+                co_time = info.get("checkout_time", "N/A")
+                st.write(f"Check-in: {ci_time}")
+                st.write(f"Check-out: {co_time}")
