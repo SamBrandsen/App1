@@ -15,5 +15,27 @@
   "Samuel ": {
     "membership": "",
     "hide_name": false
+  },
+  "Samuel Version 3": {
+    "show_attendance": true,
+    "membership": "1 hour per week",
+    "interest_reason": "",
+    "interests": []
+  },
+  "Samuel 1": {
+    "membership": "",
+    "hide_name": false
+  },
+  "Samuel 2": {
+    "membership": "",
+    "hide_name": false
+  },
+  "Samuel 3": {
+    "show_attendance": true,
+    "membership": "1 hour per week",
+    "interest_reason": "",
+    "interests": [
+      "Social Events"
+    ]
   }
 }

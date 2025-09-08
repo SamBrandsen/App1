@@ -19,14 +19,25 @@
   },
   "2025-08-12T11:00:00": {
     "Sam Brandsen": {
-      "status": "checked_in",
-      "checkin_time": "2025-08-11T00:21:34.221519"
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T00:21:34.221519",
+      "checkout_time": "2025-08-11T21:05:22.049523"
+    },
+    "Samuel Version 3": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T21:12:16.450816",
+      "checkout_time": "2025-08-11T21:12:20.969310"
     }
   },
   "2025-08-14T09:00:00": {
     "Sam Brandsen": {
       "status": "checked_in",
       "checkin_time": "2025-08-11T20:53:02.800487"
+    },
+    "Samuel ": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T21:05:57.330235",
+      "checkout_time": "2025-08-11T21:06:00.631934"
     }
   },
   "2025-08-14T10:00:00": {
@@ -34,6 +45,11 @@
       "status": "checked_out",
       "checkin_time": "2025-08-11T20:58:41.915938",
       "checkout_time": "2025-08-11T20:58:45.301218"
+    },
+    "Samuel Version 3": {
+      "status": "checked_out",
+      "checkin_time": "2025-08-11T21:12:42.143342",
+      "checkout_time": "2025-08-11T21:12:46.190359"
     }
   },
   "2025-08-14T11:00:00": {
@@ -41,6 +57,35 @@
       "status": "checked_out",
       "checkin_time": "2025-08-11T20:58:52.683460",
       "checkout_time": "2025-08-11T20:59:06.853992"
+    }
+  },
+  "2025-09-09T09:00:00": {},
+  "2025-09-09T10:00:00": {},
+  "2025-09-09T11:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_in",
+      "checkin_time": "2025-09-08T08:34:50.646825"
+    }
+  },
+  "2025-09-11T09:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-09-08T08:43:45.913181",
+      "checkout_time": "2025-09-08T08:43:50.849302"
+    }
+  },
+  "2025-09-11T10:00:00": {},
+  "2025-09-11T11:00:00": {
+    "Samuel 1": {
+      "status": "checked_in",
+      "checkin_time": "2025-09-07T22:40:14.411999"
+    }
+  },
+  "2025-07-23T09:00:00": {
+    "Sam Brandsen": {
+      "status": "checked_out",
+      "checkin_time": "2025-09-08T08:35:27.255537",
+      "checkout_time": "2025-09-08T08:35:31.056141"
     }
   }
 }

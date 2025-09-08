@@ -7,6 +7,30 @@ st.set_page_config(page_title="Clubhouse Scheduler", layout="wide")
 SETTINGS_FILE = "user_prefs.json"
 ADMIN_PASSWORD = "letmein123"  # 🔐 Change in real use!
 
+# --- Custom CSS for sidebar ---
+# Add this somewhere near the top of your app (after st.set_page_config)
+st.markdown("""
+    <style>
+    div[data-testid="stButton"] button {
+        border-radius: 8px;
+        font-weight: bold;
+    }
+    /* Custom button colors */
+    .checkin-btn {
+        background-color: #4CAF50 !important; /* Green */
+        color: white !important;
+    }
+    .checkout-btn {
+        background-color: #f44336 !important; /* Red */
+        color: white !important;
+    }
+    .signup-btn {
+        background-color: #687c9c !important; /* Your primary blue-grey */
+        color: white !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 def load_saved_prefs():
     if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
@@ -30,19 +54,20 @@ if "current_user" in st.session_state:
         st.session_state.clear()
         st.rerun()
 
+
 # If NOT logged in
 else:
     choice = st.sidebar.radio("Choose an option:", ["Login", "Sign Up"])
 
     if choice == "Login":
-        if user_names:
-            selected_user = st.sidebar.selectbox("Select your name", user_names)
-            if st.sidebar.button("Log In"):
-                st.session_state["current_user"] = selected_user
+        username = st.sidebar.text_input("Enter your username")
+        if st.sidebar.button("Log In"):
+            if username in saved_prefs:
+                st.session_state["current_user"] = username
                 st.session_state["is_admin"] = False
                 st.rerun()
-        else:
-            st.sidebar.info("No users yet. Please sign up.")
+            else:
+                st.sidebar.error("That username does not exist. Please sign up first.")
 
     elif choice == "Sign Up":
         new_user = st.sidebar.text_input("Choose a username")
@@ -57,7 +82,7 @@ else:
                 st.session_state["current_user"] = new_user
                 st.session_state["is_admin"] = False
                 st.success(f"Welcome, {new_user}! Redirecting to settings...")
-                st.switch_page("pages/1_⚙️_Settings.py")
+                st.switch_page("pages/1_Settings.py")
 
 # --- ADMIN LOGIN ---
 with st.sidebar.expander("👮 Admin Login"):
@@ -68,6 +93,8 @@ with st.sidebar.expander("👮 Admin Login"):
         st.sidebar.success("Logged in as admin")
     elif admin_attempt:
         st.sidebar.error("Incorrect password")
+
+
 
 # --- SHOW USER DETAILS IF LOGGED IN ---
 if "current_user" in st.session_state and st.session_state["current_user"] != "admin":
