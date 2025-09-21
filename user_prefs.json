@@ -1,6 +1,6 @@
 {
   "Sam Brandsen": {
-    "hide_name": true
+    "show_attendance": true
   },
   "John Doe": {
     "show_attendance": false,
@@ -37,5 +37,11 @@
     "interests": [
       "Social Events"
     ]
+  },
+  "Samuel 5": {
+    "show_attendance": true
+  },
+  "Samuel 10": {
+    "show_attendance": true
   }
 }

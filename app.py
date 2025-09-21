@@ -9,24 +9,62 @@ ADMIN_PASSWORD = "letmein123"  # 🔐 Change in real use!
 
 # --- Custom CSS for sidebar ---
 # Add this somewhere near the top of your app (after st.set_page_config)
+# --- Page background color ---
 st.markdown("""
     <style>
+    /* === Entire app background === */
+    .stApp {
+        background-color: #5979A2;  /* Riviera */
+        color: white;  /* default text color */
+    }
+
+    /* === Sidebar background & text === */
+    .css-1d391kg, .css-1v3fvcr { 
+        background-color: #5979A2;
+        color: white;
+    }
+
+    /* === Top menu / toolbar === */
+    header, .stToolbar {
+        background-color: #5979A2 !important;
+    }
+
+    /* === Buttons === */
     div[data-testid="stButton"] button {
+        background-color: #5979A2 !important;  /* Riviera */
+        color: white !important;
         border-radius: 8px;
         font-weight: bold;
+        border: none !important;
     }
-    /* Custom button colors */
-    .checkin-btn {
-        background-color: #4CAF50 !important; /* Green */
-        color: white !important;
+
+    div[data-testid="stButton"] button:hover {
+        filter: brightness(0.9) !important;
     }
-    .checkout-btn {
-        background-color: #f44336 !important; /* Red */
-        color: white !important;
+
+    /* === Text Inputs / Select Boxes / Text Areas / Radios / Sliders === */
+    input, textarea, select {
+        color: black !important;  /* text inside inputs */
+        background-color: #E0E0E0 !important;  /* light background for readability */
+        border-radius: 4px !important;
     }
-    .signup-btn {
-        background-color: #687c9c !important; /* Your primary blue-grey */
+
+    /* === Captions / info / warnings === */
+    .stCaption, .stMarkdown p, .stInfo, .stWarning, .stError {
         color: white !important;
+        background-color: rgba(0,0,0,0.1) !important;
+        border-radius: 4px;
+        padding: 0.5em;
+    }
+
+    /* === Sliders / Range sliders text === */
+    .css-14xtw13, .css-1l02zno { 
+        color: black !important;
+    }
+
+    /* Optional: links inside markdown */
+    a {
+        color: #FFD166 !important;  /* Spicy Mustard for links */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -105,7 +143,7 @@ if "current_user" in st.session_state and st.session_state["current_user"] != "a
 st.title("Welcome to the Clubhouse Appointments App 🎉")
 st.write("Please use the sidebar to navigate to:")
 st.markdown("""
-- 📅 **Calendar** – to view and sign up for slots  
+- 👀 **View Signups** – to view and sign up for slots  
 - ⚙️ **Settings** – to configure your info  
-- 👀 **View Signups** – for moderators
+- 👀 **admin signups** – for moderators
 """)

@@ -3,192 +3,160 @@ import datetime
 import json
 import os
 
-# --- Page config ---
-st.set_page_config(page_title="Calendar Sign-Up", layout="wide")
+# --- File paths ---
+SETTINGS_FILE = "user_prefs.json"
+SIGNUPS_FILE = "signups.json"
+CHECKINS_FILE = "checkins.json"
 
-# --- Refresh helpers ---
-def safe_refresh():
-    st.session_state["_refresh"] = True
+# --- Helper functions ---
+def load_json(filename):
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            return json.load(f)
+    return {}
 
-if st.session_state.get("_refresh"):
-    st.session_state["_refresh"] = False
-    # Reload data fresh on rerun
-    SETTINGS_FILE = "user_prefs.json"
-    SIGNUPS_FILE = "signups.json"
-    CHECKINS_FILE = "checkins.json"
-    saved_prefs = {}
-    signups = {}
-    checkins = {}
-    if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r") as f:
-            saved_prefs = json.load(f)
-    if os.path.exists(SIGNUPS_FILE):
-        with open(SIGNUPS_FILE, "r") as f:
-            signups = json.load(f)
-    if os.path.exists(CHECKINS_FILE):
-        with open(CHECKINS_FILE, "r") as f:
-            checkins = json.load(f)
-else:
-    # File paths
-    SETTINGS_FILE = "user_prefs.json"
-    SIGNUPS_FILE = "signups.json"
-    CHECKINS_FILE = "checkins.json"
+def save_json(filename, data):
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=2)
 
-    # --- Helper functions ---
-    def load_json(filename):
-        if os.path.exists(filename):
-            with open(filename, "r") as f:
-                return json.load(f)
-        return {}
+# --- Load data ---
+saved_prefs = load_json(SETTINGS_FILE)
+signups = load_json(SIGNUPS_FILE)
+checkins = load_json(CHECKINS_FILE)
 
-    def save_json(filename, data):
-        with open(filename, "w") as f:
-            json.dump(data, f, indent=2)
-
-    # Load data
-    saved_prefs = load_json(SETTINGS_FILE)
-    signups = load_json(SIGNUPS_FILE)
-    checkins = load_json(CHECKINS_FILE)
-
-# Admin flag
-is_admin = st.session_state.get("is_admin", False)
-
-# Constants
-MAX_SIGNUPS_PER_SLOT = 3
-
-# --- Generate next Tue/Thu slots dynamically ---
-def get_next_tue_thu():
-    today = datetime.date.today()
-    weekday = today.weekday()
-    days_until_tuesday = (1 - weekday + 7) % 7 or 7
-    days_until_thursday = (3 - weekday + 7) % 7 or 7
-    return [today + datetime.timedelta(days=days_until_tuesday),
-            today + datetime.timedelta(days=days_until_thursday)]
-
-def generate_time_slots(days):
-    slots = []
-    for day in days:
-        for hour in [9, 10, 11]:
-            slot_time = datetime.datetime.combine(day, datetime.time(hour=hour))
-            slots.append(slot_time)
-    return slots
-
-# --- Ensure logged-in user ---
+# --- Ensure user is logged in ---
 if "current_user" not in st.session_state:
     st.warning("Please log in using the sidebar.")
     st.stop()
 
-name = st.session_state["current_user"]
+user_name = st.session_state["current_user"]
+is_admin = st.session_state.get("is_admin", False)
 
-# --- Generate future slots ---
-selected_days = get_next_tue_thu()
-all_slots = generate_time_slots(selected_days)
+# --- Session rerun trigger ---
+if "rerun" not in st.session_state:
+    st.session_state.rerun = False
 
-st.title("Calendar Sign-Up & Check-In")
+# --- Generate next future sessions (Wed/Friday) ---
+def get_next_sessions(n_sessions=4):
+    today = datetime.datetime.now()
+    sessions = []
 
-# --- Sort slots in reverse for admin display ---
-all_slots_sorted = sorted(all_slots, reverse=True)
+    # weekday number -> (start_hour, start_minute, duration_hours)
+    session_rules = {
+        2: (14, 0, 2),    # Wednesday 2:00–4:00
+        4: (14, 30, 2)    # Friday 2:30–4:30
+    }
 
-for slot in all_slots_sorted:
-    slot_key = slot.isoformat()
-    slot_str = slot.strftime("%A %B %d, %I:%M %p")
+    check_date = today.date()
+    while len(sessions) < n_sessions:
+        weekday = check_date.weekday()
+        if weekday in session_rules:
+            start_hour, start_minute, duration_hours = session_rules[weekday]
+            start_dt = datetime.datetime.combine(check_date, datetime.time(start_hour, start_minute))
+            if start_dt > today:
+                end_dt = start_dt + datetime.timedelta(hours=duration_hours)
+                sessions.append({
+                    "start": start_dt,
+                    "end": end_dt,
+                    "max_capacity": 12,
+                    "day": start_dt.strftime("%A")
+                })
+        check_date += datetime.timedelta(days=1)
 
+    return sessions
+
+sessions = get_next_sessions(n_sessions=4)
+
+# --- Ensure all sessions exist in signups and checkins ---
+for sess in sessions:
+    slot_key = sess["start"].isoformat()
     if slot_key not in signups:
         signups[slot_key] = []
     if slot_key not in checkins:
         checkins[slot_key] = {}
 
-    signups_for_slot = signups[slot_key]
-    checkins_for_slot = checkins[slot_key]
+# --- Page title ---
+st.title("📅 Clubhouse Sessions Sign-Up & Check-In")
+
+# --- Display sessions ---
+for sess in sessions:
+    slot_key = sess["start"].isoformat()
+    start_str = sess["start"].strftime("%A %B %d, %I:%M %p")
+    end_str = sess["end"].strftime("%I:%M %p")
+    st.subheader(f"{sess['day']} Session: {start_str} - {end_str}")
+    st.caption(f"Maximum Participants: {sess['max_capacity']}")
+
+    session_signups = signups[slot_key]
+    session_checkins = checkins[slot_key]
 
     col1, col2, col3 = st.columns([4, 2, 3])
 
-    # --- Column 1: Slot info and names ---
+    # --- Column 1: Participant Names ---
     with col1:
-        st.write(f"**{slot_str}**")
-        if signups_for_slot:
-            visible_signups = []
-            for user in signups_for_slot:
-                prefs = saved_prefs.get(user, {})
+        if session_signups:
+            visible_names = []
+            for uname in session_signups:
+                prefs = saved_prefs.get(uname, {})
                 show_attendance = prefs.get("show_attendance", True)
-                if is_admin or show_attendance:
-                    visible_signups.append(user)
-                else:
-                    visible_signups.append("🔒 Hidden")
-            st.caption(f"Signed up: {', '.join(visible_signups)}")
+                visible_names.append(uname if (is_admin or show_attendance) else "🔒 Hidden")
+            st.caption(f"Signed up: {', '.join(visible_names)}")
         else:
             st.caption("No one signed up yet.")
 
-    # --- Column 2: Buttons ---
+    # --- Column 2: User actions ---
+    signup_clicked = False
     checkin_clicked = False
     checkout_clicked = False
-    signup_clicked = False
 
     with col2:
-        if name in signups_for_slot:
-            status = checkins_for_slot.get(name, {}).get("status", "not_checked_in")
+        if user_name in session_signups:
+            status = session_checkins.get(user_name, {}).get("status", "not_checked_in")
             if status == "not_checked_in":
                 checkin_clicked = st.button("Check In", key=f"checkin_{slot_key}")
-                st.markdown(f"""
-                    <style>
-                        div[data-testid='stButton'][key='checkin_{slot_key}'] button {{
-                            background-color:#4CAF50;color:white;
-                        }}
-                    </style>""", unsafe_allow_html=True)
             elif status == "checked_in":
                 checkout_clicked = st.button("Check Out", key=f"checkout_{slot_key}")
-                st.markdown(f"""
-                    <style>
-                        div[data-testid='stButton'][key='checkout_{slot_key}'] button {{
-                            background-color:#f44336;color:white;
-                        }}
-                    </style>""", unsafe_allow_html=True)
             elif status == "checked_out":
                 st.info("Checked out")
         else:
-            if len(signups_for_slot) >= MAX_SIGNUPS_PER_SLOT:
+            if len(session_signups) >= sess["max_capacity"]:
                 st.error("Full")
             else:
                 signup_clicked = st.button("Sign Up", key=f"signup_{slot_key}")
-                st.markdown(f"""
-                    <style>
-                        div[data-testid='stButton'][key='signup_{slot_key}'] button {{
-                            background-color:#687c9c;color:white;
-                        }}
-                    </style>""", unsafe_allow_html=True)
 
-    # --- Process button clicks ---
-    if checkin_clicked:
-        checkins_for_slot[name] = {"status": "checked_in", "checkin_time": datetime.datetime.now().isoformat()}
-        save_json(CHECKINS_FILE, checkins)
-        safe_refresh()
-
-    if checkout_clicked:
-        checkins_for_slot[name]["status"] = "checked_out"
-        checkins_for_slot[name]["checkout_time"] = datetime.datetime.now().isoformat()
-        save_json(CHECKINS_FILE, checkins)
-        safe_refresh()
-
-    if signup_clicked:
-        signups_for_slot.append(name)
-        save_json(SIGNUPS_FILE, signups)
-        safe_refresh()
-
-    # --- Column 3: Admin / user view ---
+    # --- Column 3: Admin / user info ---
     with col3:
         if is_admin:
             st.caption("Check-in/out status:")
-            for user in signups_for_slot:
-                info = checkins_for_slot.get(user, {"status": "not_checked_in"})
+            for uname in session_signups:
+                info = session_checkins.get(uname, {"status": "not_checked_in"})
                 ci_time = info.get("checkin_time", "N/A")
                 co_time = info.get("checkout_time", "N/A")
-                status = info.get("status", "not_checked_in")
-                st.write(f"- {user}: {status}, In: {ci_time}, Out: {co_time}")
+                st.write(f"- {uname}: {info.get('status', 'not_checked_in')}, In: {ci_time}, Out: {co_time}")
         else:
-            if name in checkins_for_slot:
-                info = checkins_for_slot[name]
+            if user_name in session_checkins:
+                info = session_checkins[user_name]
                 ci_time = info.get("checkin_time", "N/A")
                 co_time = info.get("checkout_time", "N/A")
                 st.write(f"Check-in: {ci_time}")
                 st.write(f"Check-out: {co_time}")
+
+    # --- Process button clicks ---
+    if signup_clicked:
+        session_signups.append(user_name)
+        save_json(SIGNUPS_FILE, signups)
+        st.session_state.rerun = not st.session_state.rerun
+
+    if checkin_clicked:
+        session_checkins[user_name] = {
+            "status": "checked_in",
+            "checkin_time": datetime.datetime.now().isoformat()
+        }
+        save_json(CHECKINS_FILE, checkins)
+        st.session_state.rerun = not st.session_state.rerun
+
+    if checkout_clicked:
+        session_checkins[user_name]["status"] = "checked_out"
+        session_checkins[user_name]["checkout_time"] = datetime.datetime.now().isoformat()
+        save_json(CHECKINS_FILE, checkins)
+        st.session_state.rerun = not st.session_state.rerun
 

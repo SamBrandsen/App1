@@ -4,6 +4,7 @@ import os
 
 SETTINGS_FILE = "user_prefs.json"
 
+# --- Load / save helper functions ---
 def load_saved_prefs():
     if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
@@ -29,70 +30,32 @@ if "current_user" not in st.session_state:
                 st.error("That username already exists. Please pick another.")
             else:
                 saved_prefs[new_user] = {
-                    "show_attendance": True,  # default to showing attendance
-                    "membership": "1 hour per week"
+                    "show_attendance": True  # default
                 }
                 save_prefs(saved_prefs)
                 st.success(f"Profile created for '{new_user}'. Please log in using the sidebar.")
     st.stop()
 
-# --- Editing settings ---
+# --- Settings page ---
 st.title("Settings")
 
 name = st.session_state["current_user"]
 prefs = saved_prefs.get(name, {})
 
-# --- Display Attendance ---
+# --- Show Attendance ---
 current_attendance = prefs.get("show_attendance", True)
 show_attendance = st.radio(
-    "Display my name and attendance in the public signup list?",
+    "Display my name in the public signup list?",
     ["Yes", "No"],
     index=0 if current_attendance else 1
-)
-
-# --- Membership Tier ---
-membership_options = [
-    "1 hour per week",
-    "2 hours per week",
-    "3 hours per week",
-    "4 hours per week"
-]
-current_membership = prefs.get("membership", membership_options[0])
-if current_membership not in membership_options:
-    current_membership = membership_options[0]
-
-membership = st.selectbox(
-    "Select your membership tier:",
-    membership_options,
-    index=membership_options.index(current_membership)
-)
-
-tier_messages = {
-    "1 hour per week": "Come to socialize, help out, or do your own thing! You can select one hour per week that you would like to drop in at the Clubhouse",
-    "2 hours per week": "Come to socialize, help out, or do your own thing! You can select two hours per week that you would like to drop in at the Clubhouse",
-    "3 hours per week": "Come to socialize, help out, or do your own thing! You can select three hours per week that you would like to drop in at the Clubhouse",
-    "4 hours per week": "Come to socialize, help out, or do your own thing! You can select four hours per week that you would like to drop in at the Clubhouse"
-}
-st.info(tier_messages[membership])
-
-# --- Why Are You Joining? ---
-interest_reason = st.text_area("Why are you interested in joining the Clubhouse?", value=prefs.get("interest_reason", ""))
-
-# --- Interests ---
-interests = st.multiselect(
-    "Interests (optional)",
-    ["Art", "Music", "Fitness", "Computers", "Games", "Social Events"],
-    default=prefs.get("interests", [])
 )
 
 # --- Save Button ---
 if st.button("Save Preferences"):
     saved_prefs[name] = {
-        "show_attendance": (show_attendance == "Yes"),
-        "membership": membership,
-        "interest_reason": interest_reason,
-        "interests": interests
+        "show_attendance": (show_attendance == "Yes")
     }
     save_prefs(saved_prefs)
     st.success("Preferences saved!")
-    st.rerun()
+    st.session_state.rerun = not st.session_state.rerun  # trigger page refresh
+
